@@ -42,19 +42,20 @@ LOCK = threading.Lock()
 class SwitchController:
     """ Abstract and manage an switch GPIO pin. """
 
-    def __init__(self, client, topic, pin, interval=SWITCH_INTERVAL):
+    def __init__(self, pin, interval=SWITCH_INTERVAL):
         """ Initialize the alarm GPIO pin. """
-        self.client = client
-        self.switch_topic = topic
         self.switch_pin = pin
         GPIO.setmode(GPIO.BCM)  # Broadcom pin-numbering scheme
         GPIO.setup(self.switch_pin, GPIO.OUT,)
         GPIO.output(self.switch_pin, GPIO.LOW)
         self.state = OFF_STATE
-        self.client.publish(self.switch_topic, self.state, 0, True)
         self.last_motion = 0.0
         self.interval = interval
-        self.start()
+
+    def set_mqtt_status(self, client, topic):
+        """ set the switch status topic and prepare for publish """
+        self.client = client
+        self.switch_topic = topic
 
     def start(self,):
         """ Start the switch interval timer thread """
@@ -72,6 +73,7 @@ class SwitchController:
                 if elapsed_time > self.interval:
                     GPIO.output(self.switch_pin, GPIO.LOW)
                     self.state = OFF_STATE
+                    if len(self.switch_topic) > 0:
                     self.client.publish(self.switch_topic, self.state, 0, True)
             LOCK.release()
             time.sleep(5)
@@ -82,7 +84,8 @@ class SwitchController:
         if self.state == OFF_STATE:
             GPIO.output(self.switch_pin, GPIO.HIGH)
             self.state = ON_STATE
-            self.client.publish(self.switch_topic, self.state, 0, True)
+            if len(self.switch_topic) > 0:
+                self.client.publish(self.switch_topic, self.state, 0, True)
         self.last_motion = time.time()
         LOCK.release()
 
@@ -92,14 +95,6 @@ class SwitchController:
         if self.state == ON_STATE:
             self.state = OFF_STATE
             GPIO.output(self.switch_pin, GPIO.LOW)
-            self.client.publish(self.switch_topic, self.state, 0, True)
+            if len(self.switch_topic) > 0:
+                self.client.publish(self.switch_topic, self.state, 0, True)
         LOCK.release()
-
-    def control(self, turn_on):
-        """ Turn on or off power to the GPIO pin. """
-        """ Pull down to activate the relay """
-        if turn_on:
-            self.turn_on_switch()
-        else:
-            self.turn_off_switch()
-

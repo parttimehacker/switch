@@ -35,8 +35,10 @@ class TopicModel:
         host_name = socket.gethostname()
         self.setup_topic = "diy/"+host_name+"/setup"
         self.status_topic = "diy/"+host_name+"/status"
+        self.switch_topic = ""
+        self.switch_status_topic = ""
         self.location_topic = ""
-        self.waiting_for_location = True
+        self.waiting_for_setup = True
         print("setup topic => ", self.setup_topic)
 
     def set(self, topic):
@@ -44,7 +46,7 @@ class TopicModel:
             at startup.
         """
         self.location_topic = topic
-        self.waiting_for_location = False
+        self.waiting_for_setup = False
 
     def get_setup(self,):
         """ Typically used by MQTT subscribe methods. """

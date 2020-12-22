@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-""" DIYHA siren
-    Receives MQTT messages from MQTT broker and turns on loud siren.
+""" DIYHA switch
+    Receives MQTT messages from MQTT broker or motion sensor to turn on/off switch.
 """
 
 # The MIT License (MIT)
@@ -30,23 +30,21 @@ import logging.config
 import time
 import paho.mqtt.client as mqtt
 
-from pkg_classes.alarmcontroller import AlarmController
-from pkg_classes.alivecontroller import AliveController
+from pkg_classes.switchcontroller import SwitchController
 from pkg_classes.topicmodel import TopicModel
 from pkg_classes.whocontroller import WhoController
 from pkg_classes.testmodel import TestModel
 
 # Constants for GPIO pins
 
-SIREN_GPIO = 17
-ALIVE_GPIO = 18
-ALIVE_INTERVAL = 5
+SWITCH_GPIO = 17
+MOTION_GPIO = 27
 
 # Start logging and enable imported classes to log appropriately.
 
-logging.config.fileConfig(fname="/usr/local/diyha_siren/logging.ini",
+logging.config.fileConfig(fname="/usr/local/diyha_switch/logging.ini",
                           disable_existing_loggers=False)
-LOGGER = logging.getLogger("diyha_siren")
+LOGGER = logging.getLogger("diyha_switch")
 LOGGER.info('Application started')
 
 # Location provided by MQTT broker at runtime and managed by this class.
@@ -59,19 +57,13 @@ WHO = WhoController()
 
 # set up alarm GPIO controller
 
-SIREN = AlarmController(SIREN_GPIO) # Alarm or light controller
-SIREN.start()
+SWITCH = SwitchController(SWITCH_GPIO) # Alarm or light controller
 
-TEST = TestModel(SIREN)
+# process diy/system/test development messages
 
-# set up alive GPIO controller
-
-ALIVE = AliveController(ALIVE_GPIO, ALIVE_INTERVAL) # Alive or LED controller
-ALIVE.start()
+TEST = TestModel(SWITCH)
 
 # Process MQTT messages using a dispatch table algorithm.
-
-#pylint: disable=too-many-branches
 
 def system_message(msg):
     """ Log and process system messages. """

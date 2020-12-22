@@ -30,10 +30,11 @@ import logging.config
 import time
 import paho.mqtt.client as mqtt
 
+from pkg_classes.motioncontroller import MotionController
 from pkg_classes.switchcontroller import SwitchController
+from pkg_classes.testmodel import TestModel
 from pkg_classes.topicmodel import TopicModel
 from pkg_classes.whocontroller import WhoController
-from pkg_classes.testmodel import TestModel
 
 # Constants for GPIO pins
 
@@ -55,9 +56,13 @@ TOPIC = TopicModel() # Location MQTT topic
 
 WHO = WhoController()
 
-# set up alarm GPIO controller
+# set up switch GPIO controller to power on/off and with interval timer
 
-SWITCH = SwitchController(SWITCH_GPIO) # Alarm or light controller
+SWITCH = SwitchController(SWITCH_GPIO)  # Alarm or light controller
+
+# set up the motion controller using a PIR sensor
+
+MOTION = MotionController(MOTION_GPIO)
 
 # process diy/system/test development messages
 
@@ -117,7 +122,13 @@ TOPIC_DISPATCH_DICTIONARY = {
 def on_message(client, userdata, msg):
     """ dispatch to the appropriate MQTT topic handler """
     #pylint: disable=unused-argument
-    TOPIC_DISPATCH_DICTIONARY[msg.topic]["method"](msg)
+    if msg.topic == TOPIC.get_switch():
+        if msg.payload == b'ON':
+            SWITCH.turn_on_switch()
+        else:
+            SWITCH.turn_off_switch()
+    else:
+        TOPIC_DISPATCH_DICTIONARY[msg.topic]["method"](msg)
 
 
 def on_connect(client, userdata, flags, rc_msg):
@@ -169,7 +180,19 @@ if __name__ == '__main__':
     while TOPIC.waiting_for_location:
         time.sleep(5.0)
 
+    # start the switch automatic management
+
+    SWITCH.set_mqtt_status(CLIENT, TOPIC.location_topic)
+    SWITCH.start()
+
     # Loop forever waiting for and handling MQTT messages.
 
     while True:
         time.sleep(5.0)
+        if MOTION.detected():
+            movement = MOTION.get_motion()
+            CLIENT.publish(TOPIC.get_motion(), movement, 0, True)
+            if movement == "1":
+                if SWITCH.state == "ON":
+                    SWITCH.turn_on_switch()
+

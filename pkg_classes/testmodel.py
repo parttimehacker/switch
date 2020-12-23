@@ -29,44 +29,39 @@ class TestModel:
     """ Manage all diy/system/test topic messages
     """
 
-    def __init__(self, alarm):
+    def __init__(self, controller):
         """ Create two topics for this application. """
-        logging.config.fileConfig(fname="/usr/local/diyha_siren/logging.ini",
+        logging.config.fileConfig(fname="/usr/local/diyha_switch/logging.ini",
                                   disable_existing_loggers=False)
         # Get the logger specified in the file
         self.logger = logging.getLogger(__name__)
-        self.logger.info("Test Model started")
-        self.alarm = alarm
+        self.logger.info("Switch Test Model started")
+        self.controller = controller
         self.options = {
-            b'0' : self.shutdown,
+            b'0' : self.off,
             b'1': self.no_op,
             b'2': self.no_op,
-            b'3': self.sound_alarm,
-            b'4': self.sound_pulsing_alarm,
-            b'5': self.no_op,
-            b'6': self.no_op,
+            b'3': self.no_op,
+            b'4': self.no_op,
+            b'5': self.on,
+            b'6': self.off,
             b'7': self.no_op,
-            b'8': self.no_op,
             b'9': self.no_op,
-            b'ON' : self.sound_alarm,
-            b'OFF': self.shutdown
+            b'8': self.no_op,
+            b'ON' : self.on,
+            b'OFF': self.off
         }
-
-    def shutdown(self):
-        self.alarm.sound_alarm(False)
-        self.alarm.sound_pulsing_alarm(False)
-        self.logger.info("case 0 or OFF: siren off")
 
     def no_op(self):
         self.logger.info("Tilt: not a valid msg")
 
-    def sound_alarm(self):
-        self.alarm.sound_alarm(True)
-        self.logger.info("case 3 or ON: siren on")
+    def on(self):
+        self.controller.turn_on_switch()
+        self.logger.info("case 5: ON switch on")
 
-    def sound_pulsing_alarm(self):
-        self.alarm.sound_pulsing_alarm(True)
-        self.logger.info("case 4: oscillating siren on")
+    def off(self):
+        self.controller.turn_off_switch()
+        self.logger.info("case 6: OFF switch off")
 
     def on_message(self, msg):
         print("test message> ", msg)

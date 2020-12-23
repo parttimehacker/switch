@@ -50,9 +50,9 @@ LOGGER.info('Application started')
 
 # Location provided by MQTT broker at runtime and managed by this class.
 
-TOPIC = TopicModel() # Location MQTT topic
+TOPIC = TopicModel()  # Location MQTT topic
 
-# Set up diy/system/who message handler from MQTT broker and wait for client.
+# Set up who message handler from MQTT broker and wait for client.
 
 WHO = WhoController()
 
@@ -70,19 +70,20 @@ TEST = TestModel(SWITCH)
 
 # Process MQTT messages using a dispatch table algorithm.
 
-def system_message(msg):
+def system_message(client, msg):
     """ Log and process system messages. """
-    LOGGER.info(msg.topic+" "+msg.payload.decode('utf-8'))
+    # pylint: disable=unused-argument
+    LOGGER.info(msg.topic + " " + msg.payload.decode('utf-8'))
     if msg.topic == 'diy/system/fire':
         if msg.payload == b'ON':
-            SIREN.sound_alarm(True)
+            SWITCH.turn_on_switch()
         else:
-            SIREN.sound_alarm(False)
+            SWITCH.turn_off_switch()
     elif msg.topic == 'diy/system/panic':
         if msg.payload == b'ON':
-            SIREN.sound_alarm(True)
+            SWITCH.turn_on_switch()
         else:
-            SIREN.sound_alarm(False)
+            SWITCH.turn_off_switch()
     elif msg.topic == 'diy/system/test':
         TEST.on_message(msg.payload)
     elif msg.topic == TOPIC.get_setup():
@@ -94,48 +95,47 @@ def system_message(msg):
         else:
             WHO.turn_off()
 
-#pylint: disable=unused-argument
 
-def topic_message(msg):
+def topic_message(client, msg):
     """ Set the sensors location topic. Used to publish measurements. """
-    LOGGER.info(msg.topic+" "+msg.payload.decode('utf-8'))
-    topic = msg.payload.decode('utf-8') + "/motion"
-    TOPIC.set(topic)
+    # pylint: disable=unused-argument
+    LOGGER.info(msg.topic + " " + msg.payload.decode('utf-8'))
+    TOPIC.set(msg.topic)
 
 
 #  A dictionary dispatch table is used to parse and execute MQTT messages.
 
 TOPIC_DISPATCH_DICTIONARY = {
     "diy/system/fire":
-        {"method":system_message},
+        {"method": system_message},
     "diy/system/panic":
-        {"method":system_message},
+        {"method": system_message},
     "diy/system/test":
         {"method": system_message},
     "diy/system/who":
-        {"method":system_message},
+        {"method": system_message},
     TOPIC.get_setup():
-        {"method":topic_message}
-    }
+        {"method": topic_message}
+}
 
 
 def on_message(client, userdata, msg):
     """ dispatch to the appropriate MQTT topic handler """
-    #pylint: disable=unused-argument
+    # pylint: disable=unused-argument
     if msg.topic == TOPIC.get_switch():
         if msg.payload == b'ON':
             SWITCH.turn_on_switch()
         else:
             SWITCH.turn_off_switch()
     else:
-        TOPIC_DISPATCH_DICTIONARY[msg.topic]["method"](msg)
+        TOPIC_DISPATCH_DICTIONARY[msg.topic]["method"](client, msg)
 
 
 def on_connect(client, userdata, flags, rc_msg):
     """ Subscribing in on_connect() means that if we lose the connection and
         reconnect then subscriptions will be renewed.
     """
-    #pylint: disable=unused-argument
+    # pylint: disable=unused-argument
     client.subscribe("diy/system/fire", 1)
     client.subscribe("diy/system/panic", 1)
     client.subscribe("diy/system/test", 1)
@@ -145,7 +145,7 @@ def on_connect(client, userdata, flags, rc_msg):
 
 def on_disconnect(client, userdata, rc_msg):
     """ Subscribing on_disconnect() tilt """
-    #pylint: disable=unused-argument
+    # pylint: disable=unused-argument
     client.connected_flag = False
     client.disconnect_flag = True
 
@@ -167,10 +167,11 @@ if __name__ == '__main__':
 
     PARSER = argparse.ArgumentParser('sensor.py parser')
     PARSER.add_argument('--mqtt', help='MQTT server IP address')
+    PARSER.add_argument('--mode', help='motion or message switch')
     ARGS = PARSER.parse_args()
 
     BROKER_IP = ARGS.mqtt
-    print(BROKER_IP)
+    MODE = ARGS.mode
 
     CLIENT.connect(BROKER_IP, 1883, 60)
     CLIENT.loop_start()
@@ -182,7 +183,7 @@ if __name__ == '__main__':
 
     # start the switch automatic management
 
-    SWITCH.set_mqtt_status(CLIENT, TOPIC.location_topic)
+    SWITCH.set_mqtt_topic(CLIENT, TOPIC.get_switch())
     SWITCH.start()
 
     # Loop forever waiting for and handling MQTT messages.
@@ -193,6 +194,8 @@ if __name__ == '__main__':
             movement = MOTION.get_motion()
             CLIENT.publish(TOPIC.get_motion(), movement, 0, True)
             if movement == "1":
-                if SWITCH.state == "ON":
+                if MODE == 'motion':
                     SWITCH.turn_on_switch()
-
+                else:
+                    if SWITCH.state == "ON":
+                        SWITCH.turn_on_switch()

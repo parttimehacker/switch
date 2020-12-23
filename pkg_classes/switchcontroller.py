@@ -42,8 +42,8 @@ LOCK = threading.Lock()
 class SwitchController:
     """ Abstract and manage an switch GPIO pin. """
 
-    def __init__(self, pin, interval=SWITCH_INTERVAL):
-        """ Initialize the alarm GPIO pin. """
+    def __init__(self, pin=17, interval=SWITCH_INTERVAL):
+        """ Initialize the alarm GPIO pin.  """
         self.switch_pin = pin
         GPIO.setmode(GPIO.BCM)  # Broadcom pin-numbering scheme
         GPIO.setup(self.switch_pin, GPIO.OUT,)
@@ -51,8 +51,9 @@ class SwitchController:
         self.state = OFF_STATE
         self.last_motion = 0.0
         self.interval = interval
+        self.switch_topic = ""
 
-    def set_mqtt_status(self, client, topic):
+    def set_mqtt_topic(self, client, topic):
         """ set the switch status topic and prepare for publish """
         self.client = client
         self.switch_topic = topic
@@ -74,7 +75,7 @@ class SwitchController:
                     GPIO.output(self.switch_pin, GPIO.LOW)
                     self.state = OFF_STATE
                     if len(self.switch_topic) > 0:
-                    self.client.publish(self.switch_topic, self.state, 0, True)
+                        self.client.publish(self.switch_topic, self.state, 0, True)
             LOCK.release()
             time.sleep(5)
 

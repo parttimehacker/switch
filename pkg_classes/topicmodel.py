@@ -33,24 +33,18 @@ class TopicModel:
     def __init__(self):
         """ Create two topics for this application. """
         host_name = socket.gethostname()
-        self.setup_topic = "diy/"+host_name+"/setup"
         self.status_topic = "diy/"+host_name+"/status"
+        self.switch_status_topic = ""
         self.switch_topic = ""
         self.location_topic = ""
         self.motion_topic = ""
-        self.waiting_for_setup = True
-        print("setup topic => ", self.setup_topic)
 
     def set(self, location):
         """ The location topic is typically returned by MQTT message methods at startup. """
         self.location_topic = location
         self.switch_topic = location + "/switch"
+        self.switch_status_topic = self.switch_topic + "/status"
         self.motion_topic = location + "/motion"
-        self.waiting_for_setup = False
-
-    def get_setup(self,):
-        """ Typically used by MQTT subscribe methods. """
-        return self.setup_topic
 
     def get_status(self,):
         """ Typically used in response to MQTT diy/system/who message. """
@@ -60,12 +54,14 @@ class TopicModel:
         """ Typically used in response to MQTT diy/system/who message. """
         return self.switch_topic
 
+    def get_switch_status(self,):
+        """ Typically used in response to MQTT diy/system/who message. """
+        return self.switch_status_topic
+
     def get_motion(self,):
         """ Typically used in response to MQTT diy/system/who message. """
         return self.motion_topic
 
     def get_location(self,):
-        """ The location topic is used to manage multiple devices. At runtime
-            a device requests its location dynamically from the MQTT broker.
-        """
+        """ The location topic is used to manage multiple devices. """
         return self.location_topic

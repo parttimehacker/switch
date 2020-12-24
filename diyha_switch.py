@@ -113,9 +113,7 @@ TOPIC_DISPATCH_DICTIONARY = {
     "diy/system/test":
         {"method": system_message},
     "diy/system/who":
-        {"method": system_message},
-    TOPIC.get_setup():
-        {"method": topic_message}
+        {"method": system_message}
 }
 
 
@@ -167,29 +165,46 @@ if __name__ == '__main__':
 
     PARSER = argparse.ArgumentParser('sensor.py parser')
     PARSER.add_argument('--mqtt', help='MQTT server IP address')
-    PARSER.add_argument('--mode', help='motion or message switch')
+    PARSER.add_argument('--location', help='Location topic required')
+    PARSER.add_argument('--mode', help='Mode: motion or message required')
     ARGS = PARSER.parse_args()
 
+    # command line arguement for the MQTT broker hostname or IP
+
+    if ARGS.mqtt == None:
+        LOGGER.error("Terminating> --mqtt not provided")
+        exit()
     BROKER_IP = ARGS.mqtt
-    MODE = ARGS.mode
+
+    # command line arguement for the location topic
+
+    if ARGS.location == None:
+        LOGGER.error("Terminating> --location not provided")
+        exit()
+
+    # set up the dynamic topic identifiers
+
+    TOPIC.set(ARGS.location)
+    SWITCH.set_mqtt_topic(CLIENT, TOPIC.get_switch())
+
+    # command line argument for the switch mode - motion activated is the default
+    MODE = 'motion'
+    if not ARGS.mode == None:
+        MODE = ARGS.mode
 
     CLIENT.connect(BROKER_IP, 1883, 60)
     CLIENT.loop_start()
 
-    # Message broker will send the location and set waiting to false.
-
-    while TOPIC.waiting_for_location:
-        time.sleep(5.0)
+    time.sleep(2) # let MQTT stuff initialize
 
     # start the switch automatic management
 
-    SWITCH.set_mqtt_topic(CLIENT, TOPIC.get_switch())
     SWITCH.start()
 
-    # Loop forever waiting for and handling MQTT messages.
+    # Loop forever waiting for motion
 
     while True:
-        time.sleep(5.0)
+        time.sleep(2.0)
         if MOTION.detected():
             movement = MOTION.get_motion()
             CLIENT.publish(TOPIC.get_motion(), movement, 0, True)

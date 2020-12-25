@@ -42,7 +42,7 @@ class MotionController:
 
     def pir_interrupt_handler(self, ):
         """ Motion interrupt handler adds 1 or 0 to queue. """
-        state = self.GPIO.input(self.pir_pin)
+        state = GPIO.input(self.pir_pin)
         if state == 1:
             message = "1"
         else:
@@ -53,7 +53,7 @@ class MotionController:
 
     def enable(self, ):
         """ Enable interrupts and prepare the callback. """
-        self.GPIO.add_event_detect(self.pir_pin, GPIO.BOTH, callback=self.pir_interrupt_handler)
+        GPIO.add_event_detect(self.pir_pin, GPIO.BOTH, callback=self.pir_interrupt_handler)
 
     def detected(self, ):
         """ Has motion been detected? True or false based on queue contents. """

@@ -86,21 +86,11 @@ def system_message(client, msg):
             SWITCH.turn_off_switch()
     elif msg.topic == 'diy/system/test':
         TEST.on_message(msg.payload)
-    elif msg.topic == TOPIC.get_setup():
-        topic = msg.payload.decode('utf-8') + "/alive"
-        TOPIC.set(topic)
     elif msg.topic == 'diy/system/who':
         if msg.payload == b'ON':
             WHO.turn_on()
         else:
             WHO.turn_off()
-
-
-def topic_message(client, msg):
-    """ Set the sensors location topic. Used to publish measurements. """
-    # pylint: disable=unused-argument
-    LOGGER.info(msg.topic + " " + msg.payload.decode('utf-8'))
-    TOPIC.set(msg.topic)
 
 
 #  A dictionary dispatch table is used to parse and execute MQTT messages.
@@ -138,7 +128,7 @@ def on_connect(client, userdata, flags, rc_msg):
     client.subscribe("diy/system/panic", 1)
     client.subscribe("diy/system/test", 1)
     client.subscribe("diy/system/who", 1)
-    client.subscribe(TOPIC.get_setup(), 1)
+    client.subscribe(TOPIC.get_switch(), 1)
 
 
 def on_disconnect(client, userdata, rc_msg):
@@ -188,9 +178,11 @@ if __name__ == '__main__':
     SWITCH.set_mqtt_topic(CLIENT, TOPIC.get_switch())
 
     # command line argument for the switch mode - motion activated is the default
+
     MODE = 'motion'
     if not ARGS.mode == None:
         MODE = ARGS.mode
+    LOGGER.info("Mode> ",MODE)
 
     CLIENT.connect(BROKER_IP, 1883, 60)
     CLIENT.loop_start()

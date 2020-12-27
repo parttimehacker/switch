@@ -25,7 +25,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import argparse
 import logging.config
 import time
 import paho.mqtt.client as mqtt
@@ -179,10 +178,11 @@ if __name__ == '__main__':
 
     # command line argument for the switch mode - motion activated is the default
 
-    MODE = 'motion'
-    if not ARGS.mode == None:
+    if ARGS.mode == None:
+        MODE = "motion"
+    else:
         MODE = ARGS.mode
-    LOGGER.info("Mode> ",MODE)
+    LOGGER.info("Mode> ", str(MODE))
 
     CLIENT.connect(BROKER_IP, 1883, 60)
     CLIENT.loop_start()
@@ -201,7 +201,7 @@ if __name__ == '__main__':
             movement = MOTION.get_motion()
             CLIENT.publish(TOPIC.get_motion(), movement, 0, True)
             if movement == "1":
-                if MODE == 'motion':
+                if MODE == "motion":
                     SWITCH.turn_on_switch()
                 else:
                     if SWITCH.state == "ON":

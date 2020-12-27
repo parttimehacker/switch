@@ -23,11 +23,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import socket
+import argparse
 import logging
 import logging.config
 
-class WhoController:
+class ConfigModel:
     """ Who controller handles  MQTT broker messsages for diy/system/who ON or OFF.
     """
 
@@ -37,11 +37,27 @@ class WhoController:
                                   disable_existing_loggers=False)
         # Get the logger specified in the file
         self.logger = logging.getLogger(__name__)
-        host_name = socket.gethostname()
-        self.default_who_message = host_name
-        self.status_topic = "diy/system/status"
-        self.waiting_for_client = True
-        self.logger.info('Waiting for client initialization: '+self.default_who_message)
+        PARSER = argparse.ArgumentParser('sensor.py parser')
+        PARSER.add_argument('--mqtt', help='MQTT server IP address')
+        PARSER.add_argument('--location', help='Location topic required')
+        PARSER.add_argument('--mode', help='Mode: motion or message required')
+        ARGS = PARSER.parse_args()
+        # command line arguement for the MQTT broker hostname or IP
+        if ARGS.mqtt == None:
+            self.logger.error("Terminating> --mqtt not provided")
+            exit()
+        self.broker_ip = ARGS.mqtt
+        # command line arguement for the location topic
+        if ARGS.location == None:
+            self.logger.error("Terminating> --location not provided")
+            exit()
+        self.location = ARGS.location
+        # command line argument for the mode - manual or motion - motion is the default
+        if ARGS.mode == None:
+            self.mode = "motion"
+        else:
+            self.mode = ARGS.mode
+        self.logger.info( "Mode> ", str( self.mode ) )
 
     def set_client(self, client):
         """ The location topic is typically returned by MQTT message methods

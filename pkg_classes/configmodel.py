@@ -59,28 +59,14 @@ class ConfigModel:
             self.mode = ARGS.mode
         self.logger.info( "Mode> ", str( self.mode ) )
 
-    def set_client(self, client):
-        """ The location topic is typically returned by MQTT message methods
-            at startup.
-        """
-        self.logger.info("Client initialized")
-        self.client = client
-        self.waiting_for_client = False
-        self.logger.info("Class ready")
+    def get_broker(self, ):
+        """ The location topic is typically returned by MQTT message methods at startup."""
+        return self.broker_ip
 
-    def set_message(self, message):
+    def get_location(self, ):
         """ Typically used by MQTT subscribe methods. """
-        self.default_who_message = message
-        self.logger.info("Default message changed")
+        return self.location
 
-    def turn_on(self,):
+    def get_mode(self,):
         """  Response to MQTT diy/system/who message. """
-        self.logger.info("Received diy/system/who ON, publish> "+self.default_who_message)
-        if not self.waiting_for_client:
-            self.client.publish(self.status_topic, self.default_who_message, 0, True)
-        else:
-            self.logger.error("Client not initialized")
-
-    def turn_off(self,):
-        """  Response to MQTT diy/system/who message. """
-        self.logger.info("Received diy/system/who OFF")
+        return self.mode

@@ -56,10 +56,9 @@ class ConfigModel:
         # command line argument for the mode - manual or motion - motion is the default
         if ARGS.mode == None:
             self.mode = 'motion'
-
         else:
             self.mode = ARGS.mode
-        self.logger.info( "Mode> ", str( self.mode ) )
+        self.logger.info( "Mode> " + str( self.mode ) )
 
     def get_broker(self, ):
         """ MQTT BORKER hostname or IP address."""

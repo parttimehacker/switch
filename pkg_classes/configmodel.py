@@ -55,19 +55,20 @@ class ConfigModel:
         self.location = ARGS.location
         # command line argument for the mode - manual or motion - motion is the default
         if ARGS.mode == None:
-            self.mode = "motion"
+            self.mode = 'motion'
+
         else:
             self.mode = ARGS.mode
         self.logger.info( "Mode> ", str( self.mode ) )
 
-    def broker(self, ):
+    def get_broker(self, ):
         """ MQTT BORKER hostname or IP address."""
         return self.broker_ip
 
-    def location(self, ):
+    def get_location(self, ):
         """ MQTT location topic for the device. """
         return self.location
 
-    def mode(self,):
+    def get_mode(self,):
         """ Mode of switch operation - motion activated or manual via MQTT message """
         return self.mode

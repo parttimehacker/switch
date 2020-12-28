@@ -55,7 +55,7 @@ CONFIG = ConfigModel()
 # Location is used to create the switch topics
 
 TOPIC = TopicModel()  # Location MQTT topic
-TOPIC.set(CONFIG.location())
+TOPIC.set(CONFIG.get_location())
 
 # Set up who message handler from MQTT broker and wait for client.
 
@@ -115,7 +115,7 @@ TOPIC_DISPATCH_DICTIONARY = {
 def on_message(client, userdata, msg):
     """ dispatch to the appropriate MQTT topic handler """
     # pylint: disable=unused-argument
-    if msg.topic == TOPIC.switch():
+    if msg.topic == TOPIC.get_switch():
         if msg.payload == b'ON':
             SWITCH.turn_on_switch()
         else:
@@ -157,11 +157,11 @@ if __name__ == '__main__':
 
     # command line argument contains Mosquitto MQTT broker IP address.
 
-    SWITCH.set_mqtt_topic(CLIENT, TOPIC.switch())
+    SWITCH.set_mqtt_topic(CLIENT, TOPIC.get_switch())
 
     # command line argument for the switch mode - motion activated is the default
 
-    CLIENT.connect(CONFIG.broker(), 1883, 60)
+    CLIENT.connect(CONFIG.get_broker(), 1883, 60)
     CLIENT.loop_start()
 
     time.sleep(2) # let MQTT stuff initialize
@@ -176,7 +176,7 @@ if __name__ == '__main__':
         time.sleep(2.0)
         if MOTION.detected():
             movement = MOTION.get_motion()
-            CLIENT.publish(TOPIC.motion(), movement, 0, True)
+            CLIENT.publish(TOPIC.get_motion(), movement, 0, True)
             if movement == "1":
                 if CONFIG.mode() == "motion":
                     SWITCH.turn_on_switch()

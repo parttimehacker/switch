@@ -46,22 +46,22 @@ class TopicModel:
         self.switch_status_topic = self.switch_topic + "/status"
         self.motion_topic = location + "/motion"
 
-    def get_status(self,):
+    def status(self,):
         """ Typically used in response to MQTT diy/system/who message. """
         return self.status_topic
 
-    def get_switch(self,):
+    def switch(self,):
         """ Typically used in response to MQTT diy/system/who message. """
         return self.switch_topic
 
-    def get_switch_status(self,):
+    def switch_status(self,):
         """ Typically used in response to MQTT diy/system/who message. """
         return self.switch_status_topic
 
-    def get_motion(self,):
+    def motion(self,):
         """ Typically used in response to MQTT diy/system/who message. """
         return self.motion_topic
 
-    def get_location(self,):
+    def location(self,):
         """ The location topic is used to manage multiple devices. """
         return self.location_topic

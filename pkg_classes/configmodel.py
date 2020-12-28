@@ -60,14 +60,14 @@ class ConfigModel:
             self.mode = ARGS.mode
         self.logger.info( "Mode> ", str( self.mode ) )
 
-    def get_broker(self, ):
+    def broker(self, ):
         """ MQTT BORKER hostname or IP address."""
         return self.broker_ip
 
-    def get_location(self, ):
+    def location(self, ):
         """ MQTT location topic for the device. """
         return self.location
 
-    def get_mode(self,):
+    def mode(self,):
         """ Mode of switch operation - motion activated or manual via MQTT message """
         return self.mode

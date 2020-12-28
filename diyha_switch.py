@@ -34,6 +34,7 @@ from pkg_classes.switchcontroller import SwitchController
 from pkg_classes.testmodel import TestModel
 from pkg_classes.topicmodel import TopicModel
 from pkg_classes.whocontroller import WhoController
+from pkg_classes.configmodel import ConfigModel
 
 # Constants for GPIO pins
 
@@ -47,9 +48,14 @@ logging.config.fileConfig(fname="/usr/local/diyha_switch/logging.ini",
 LOGGER = logging.getLogger("diyha_switch")
 LOGGER.info('Application started')
 
-# Location provided by MQTT broker at runtime and managed by this class.
+# get the command line arguements
+
+CONFIG = ConfigModel()
+
+# Location is used to create the switch topics
 
 TOPIC = TopicModel()  # Location MQTT topic
+TOPIC.set(CONFIG.location())
 
 # Set up who message handler from MQTT broker and wait for client.
 
@@ -109,7 +115,7 @@ TOPIC_DISPATCH_DICTIONARY = {
 def on_message(client, userdata, msg):
     """ dispatch to the appropriate MQTT topic handler """
     # pylint: disable=unused-argument
-    if msg.topic == TOPIC.get_switch():
+    if msg.topic == TOPIC.switch():
         if msg.payload == b'ON':
             SWITCH.turn_on_switch()
         else:
@@ -127,7 +133,6 @@ def on_connect(client, userdata, flags, rc_msg):
     client.subscribe("diy/system/panic", 1)
     client.subscribe("diy/system/test", 1)
     client.subscribe("diy/system/who", 1)
-    client.subscribe(TOPIC.get_switch(), 1)
 
 
 def on_disconnect(client, userdata, rc_msg):
@@ -152,39 +157,11 @@ if __name__ == '__main__':
 
     # command line argument contains Mosquitto MQTT broker IP address.
 
-    PARSER = argparse.ArgumentParser('sensor.py parser')
-    PARSER.add_argument('--mqtt', help='MQTT server IP address')
-    PARSER.add_argument('--location', help='Location topic required')
-    PARSER.add_argument('--mode', help='Mode: motion or message required')
-    ARGS = PARSER.parse_args()
-
-    # command line arguement for the MQTT broker hostname or IP
-
-    if ARGS.mqtt == None:
-        LOGGER.error("Terminating> --mqtt not provided")
-        exit()
-    BROKER_IP = ARGS.mqtt
-
-    # command line arguement for the location topic
-
-    if ARGS.location == None:
-        LOGGER.error("Terminating> --location not provided")
-        exit()
-
-    # set up the dynamic topic identifiers
-
-    TOPIC.set(ARGS.location)
-    SWITCH.set_mqtt_topic(CLIENT, TOPIC.get_switch())
+    SWITCH.set_mqtt_topic(CLIENT, TOPIC.switch())
 
     # command line argument for the switch mode - motion activated is the default
 
-    if ARGS.mode == None:
-        MODE = "motion"
-    else:
-        MODE = ARGS.mode
-    LOGGER.info("Mode> ", str(MODE))
-
-    CLIENT.connect(BROKER_IP, 1883, 60)
+    CLIENT.connect(CONFIG.broker(), 1883, 60)
     CLIENT.loop_start()
 
     time.sleep(2) # let MQTT stuff initialize
@@ -199,9 +176,9 @@ if __name__ == '__main__':
         time.sleep(2.0)
         if MOTION.detected():
             movement = MOTION.get_motion()
-            CLIENT.publish(TOPIC.get_motion(), movement, 0, True)
+            CLIENT.publish(TOPIC.motion(), movement, 0, True)
             if movement == "1":
-                if MODE == "motion":
+                if CONFIG.mode() == "motion":
                     SWITCH.turn_on_switch()
                 else:
                     if SWITCH.state == "ON":

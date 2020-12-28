@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" DIYHA MQTT location initializer """
+""" DIYHA Application Configuration Initializer """
 
 # The MIT License (MIT)
 #
@@ -28,16 +28,17 @@ import logging
 import logging.config
 
 class ConfigModel:
-    """ Who controller handles  MQTT broker messsages for diy/system/who ON or OFF.
+    """ Command line arguement model which expects an MQTT broker hostname or IP address,
+        the location topic for the device and an option mode for the switch.
     """
 
     def __init__(self,):
-        """ Create two topics for this application. """
+        """ Parse the command line arguements """
         logging.config.fileConfig(fname='/usr/local/diyha_switch/logging.ini',
                                   disable_existing_loggers=False)
         # Get the logger specified in the file
         self.logger = logging.getLogger(__name__)
-        PARSER = argparse.ArgumentParser('sensor.py parser')
+        PARSER = argparse.ArgumentParser('diyga_switch.py parser')
         PARSER.add_argument('--mqtt', help='MQTT server IP address')
         PARSER.add_argument('--location', help='Location topic required')
         PARSER.add_argument('--mode', help='Mode: motion or message required')
@@ -45,12 +46,12 @@ class ConfigModel:
         # command line arguement for the MQTT broker hostname or IP
         if ARGS.mqtt == None:
             self.logger.error("Terminating> --mqtt not provided")
-            exit()
+            exit() # manadatory
         self.broker_ip = ARGS.mqtt
         # command line arguement for the location topic
         if ARGS.location == None:
             self.logger.error("Terminating> --location not provided")
-            exit()
+            exit() # mandatory
         self.location = ARGS.location
         # command line argument for the mode - manual or motion - motion is the default
         if ARGS.mode == None:
@@ -60,13 +61,13 @@ class ConfigModel:
         self.logger.info( "Mode> ", str( self.mode ) )
 
     def get_broker(self, ):
-        """ The location topic is typically returned by MQTT message methods at startup."""
+        """ MQTT BORKER hostname or IP address."""
         return self.broker_ip
 
     def get_location(self, ):
-        """ Typically used by MQTT subscribe methods. """
+        """ MQTT location topic for the device. """
         return self.location
 
     def get_mode(self,):
-        """  Response to MQTT diy/system/who message. """
+        """ Mode of switch operation - motion activated or manual via MQTT message """
         return self.mode

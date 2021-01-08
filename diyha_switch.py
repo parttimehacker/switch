@@ -35,6 +35,7 @@ from pkg_classes.testmodel import TestModel
 from pkg_classes.topicmodel import TopicModel
 from pkg_classes.whocontroller import WhoController
 from pkg_classes.configmodel import ConfigModel
+from pkg_classes.statusmodel import StatusModel
 
 # Constants for GPIO pins
 
@@ -165,6 +166,11 @@ if __name__ == '__main__':
     CLIENT.loop_start()
 
     time.sleep(2) # let MQTT stuff initialize
+
+    # initialize status monitoring
+
+    STATUS = StatusModel(CLIENT)
+    STATUS.start()
 
     # start the switch automatic management
 

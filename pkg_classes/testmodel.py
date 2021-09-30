@@ -31,7 +31,7 @@ class TestModel:
 
     def __init__(self, controller):
         """ Create two topics for this application. """
-        logging.config.fileConfig(fname="/usr/local/diyha_switch/logging.ini",
+        logging.config.fileConfig(fname="/usr/local/switch/logging.ini",
                                   disable_existing_loggers=False)
         # Get the logger specified in the file
         self.logger = logging.getLogger(__name__)

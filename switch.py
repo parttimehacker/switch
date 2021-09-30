@@ -90,13 +90,17 @@ def system_message(client, msg):
     if msg.topic == 'diy/system/fire':
         if msg.payload == b'ON':
             SWITCH.turn_on_switch()
+            ALARM.sound_alarm(True)
         else:
             SWITCH.turn_off_switch()
+            ALARM.sound_alarm(False)
     elif msg.topic == 'diy/system/panic':
         if msg.payload == b'ON':
             SWITCH.turn_on_switch()
+            ALARM.sound_pulsing_alarm(True)
         else:
             SWITCH.turn_off_switch()
+            ALARM.sound_pulsing_alarm(False)
     elif msg.topic == 'diy/system/test':
         TEST.on_message(msg.payload)
     elif msg.topic == 'diy/system/who':

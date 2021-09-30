@@ -34,11 +34,11 @@ class ConfigModel:
 
     def __init__(self,):
         """ Parse the command line arguements """
-        logging.config.fileConfig(fname='/usr/local/diyha_switch/logging.ini',
+        logging.config.fileConfig(fname='/usr/local/switch/logging.ini',
                                   disable_existing_loggers=False)
         # Get the logger specified in the file
         self.logger = logging.getLogger(__name__)
-        PARSER = argparse.ArgumentParser('diyga_switch.py parser')
+        PARSER = argparse.ArgumentParser('switch.py parser')
         PARSER.add_argument('--mqtt', help='MQTT server IP address')
         PARSER.add_argument('--location', help='Location topic required')
         PARSER.add_argument('--mode', help='Mode: motion or message required')

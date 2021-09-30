@@ -36,11 +36,13 @@ from pkg_classes.topicmodel import TopicModel
 from pkg_classes.whocontroller import WhoController
 from pkg_classes.configmodel import ConfigModel
 from pkg_classes.statusmodel import StatusModel
+from pkg_classes.alarmcontroller import AlarmController
 
 # Constants for GPIO pins
 
 SWITCH_GPIO = 17
 MOTION_GPIO = 27
+ALARM_GPIO = 4
 
 # Start logging and enable imported classes to log appropriately.
 
@@ -69,6 +71,10 @@ SWITCH = SwitchController(SWITCH_GPIO)  # Alarm or light controller
 # set up the motion controller using a PIR sensor
 
 MOTION = MotionController(MOTION_GPIO)
+
+# set up the alarm controller 
+
+ALARM = AlarmController(ALARM_GPIO)
 
 # process diy/system/test development messages
 

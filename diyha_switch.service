@@ -1,8 +1,0 @@
-[Unit]
-Description=Do It Yourself Home Automation Switch
-After=multi-user.target
-[Service]
-Type=idle
-ExecStart=/usr/bin/python3 /usr/local/diyha_switch/diyha_switch.py --mqtt chuck --location diy/main/kitchen --mode message
-[Install]
-WantedBy=multi-user.target

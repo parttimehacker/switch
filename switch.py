@@ -75,6 +75,7 @@ MOTION = MotionController(MOTION_GPIO)
 # set up the alarm controller 
 
 ALARM = AlarmController(ALARM_GPIO)
+ALARM.start()
 
 # process diy/system/test development messages
 

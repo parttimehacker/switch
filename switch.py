@@ -40,9 +40,9 @@ from pkg_classes.alarmcontroller import AlarmController
 
 # Constants for GPIO pins
 
-SWITCH_GPIO = 17
-MOTION_GPIO = 27
-ALARM_GPIO = 4
+SWITCH_GPIO = 23
+MOTION_GPIO = 24
+ALARM_GPIO = 25
 
 # Start logging and enable imported classes to log appropriately.
 
@@ -190,12 +190,12 @@ if __name__ == '__main__':
     # Loop forever waiting for motion
 
     while True:
-        time.sleep(2.0)
+        time.sleep(0.5)
         if MOTION.detected():
             movement = MOTION.get_motion()
             CLIENT.publish(TOPIC.get_motion(), movement, 0, True)
             if movement == "1":
-                if CONFIG.mode() == "motion":
+                if CONFIG.get_mode() == "motion":
                     SWITCH.turn_on_switch()
                 else:
                     if SWITCH.state == "ON":

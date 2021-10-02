@@ -38,11 +38,13 @@ class MotionController:
         GPIO.setmode(GPIO.BCM)  # Broadcom pin-numbering scheme
         GPIO.setup(self.pir_pin, GPIO.IN)
         self.queue = queue.Queue()
+        self.last_reading = 0
         self.enable()
 
-    def pir_interrupt_handler(self, ):
+    def pir_interrupt_handler(self, channel ):
         """ Motion interrupt handler adds 1 or 0 to queue. """
         state = GPIO.input(self.pir_pin)
+        print("pih: state=",state)
         if state == 1:
             message = "1"
         else:
